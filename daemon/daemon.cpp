@@ -252,7 +252,7 @@ void HdcpDaemon::MessageResponseLoop(void)
             sts = m_SdkSocket.SendResponse(data, appId);
             if (SUCCESS != sts)
             {
-                HDCP_ASSERTMESSAGE("SendResponse failed. %d", data.Status);
+                HDCP_ASSERTMESSAGE("SendResponse failed. %u", (uint32_t)data.Status);
 
                 // If we can't communicate with the app, destroy the connection
                 PortManagerHandleAppExit(appId);
