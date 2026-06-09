@@ -118,7 +118,10 @@ int32_t LocalClientSocket::SendMessage(const SocketData& req)
 {
     HDCP_FUNCTION_ENTER;
 
-    int32_t ret = WriteData(m_Fd, &req.Bytes, sizeof(req));
+    int32_t ret = WriteData(
+                    m_Fd,
+                    reinterpret_cast<const uint8_t*>(&req),
+                    sizeof(req));
 
     HDCP_FUNCTION_EXIT(ret);
     return ret;
@@ -181,7 +184,7 @@ int32_t LocalClientSocket::GetMessage(SocketData& rsp)
             sizeof(rsp) <= SSIZE_MAX,
             "response size is greater than read() can handle!");
 
-    int32_t ret = ReadData(m_Fd, &rsp.Bytes, sizeof(rsp));
+    int32_t ret = ReadData(m_Fd, reinterpret_cast<uint8_t*>(&rsp), sizeof(rsp));
 
     HDCP_FUNCTION_EXIT(ret);
     return ret;
