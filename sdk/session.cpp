@@ -103,13 +103,18 @@ void HdcpSession::IncreaseReference(void)
 void HdcpSession::DecreaseReference(void)
 {
     HDCP_FUNCTION_ENTER;
+    int32_t sts = SUCCESS;
 
     ACQUIRE_LOCK(&m_ReferenceMutex);
     --m_ActiveReferences;
 
     if (m_ActiveReferences == 0)
     {
-        pthread_cond_signal(&m_ReferenceCV);
+        sts = pthread_cond_signal(&m_ReferenceCV);
+        if (SUCCESS != sts)
+        {
+            HDCP_ASSERTMESSAGE("pthread_cond_signal failed! Err: %d", sts);
+        }
     }
     RELEASE_LOCK(&m_ReferenceMutex);
 
