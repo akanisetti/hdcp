@@ -271,6 +271,7 @@ HdcpSession* HdcpSessionManager::GetInstance(const uint32_t handle)
     HDCP_FUNCTION_ENTER;
 
     HdcpSession* session = nullptr;
+    bool isPendingDestroy = false;
 
     IteratorCriticalSectionEnter();
     for (auto tempSession : m_SessionList)
@@ -294,19 +295,30 @@ HdcpSession* HdcpSessionManager::GetInstance(const uint32_t handle)
     // No elements of the destroy queue could be deleted as long as
     // this thread holds a reference to the iterator CS, so there
     // is no data race around that list.
+    ACQUIRE_LOCK(&m_IteratorMutex);
     for (auto tempSession : m_PendingDestroyQueue)
     {
         if (tempSession == session)
         {
-            IteratorCriticalSectionExit();
-            return nullptr;
+            isPendingDestroy = true;
+            break;
         }
     }
 
-    // We found the session and it is not queued up for removal
-    session->IncreaseReference();
+    // We found the session and it is not queued up for removal.
+    if (!isPendingDestroy)
+    {
+        session->IncreaseReference();
+    }
+    RELEASE_LOCK(&m_IteratorMutex);
 
     IteratorCriticalSectionExit();
+
+    if (isPendingDestroy)
+    {
+        return nullptr;
+    }
+
     HDCP_FUNCTION_EXIT(SUCCESS);
     return session;
 }
